@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10233f">
+<title>TG Data Governance Project Control</title>
+<style>
+:root{
+  --navy:#10233f;--navy2:#17385f;--gold:#d7a928;--gold2:#f1c84b;
+  --bg:#f3f6fb;--card:#fff;--text:#172238;--muted:#6c7890;--line:#dde5f0;
+  --done:#1f9d74;--doing:#e58a17;--planned:#7a86a0;--danger:#d84b5b;
+  --shadow:0 12px 32px rgba(16,35,63,.08);--radius:18px
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Noto Sans Thai","Leelawadee UI","Tahoma","Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{min-height:100vh;display:grid;grid-template-columns:268px 1fr}
+.sidebar{position:sticky;top:0;height:100vh;background:linear-gradient(180deg,var(--navy),#09182b);color:#fff;padding:24px 18px;display:flex;flex-direction:column;z-index:20}
+.brand{display:flex;align-items:center;gap:12px;padding:4px 8px 24px}
+.brand-mark{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--gold2),#ad7c05);display:grid;place-items:center;color:var(--navy);font-weight:900;box-shadow:0 8px 20px rgba(215,169,40,.28)}
+.brand h1{font-size:17px;line-height:1.25;margin:0}
+.brand small{display:block;color:#aabbd1;font-weight:400;margin-top:3px}
+.nav-label{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#8fa4be;margin:10px 12px 8px}
+.nav-btn{width:100%;border:0;color:#cbd7e5;background:transparent;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;text-align:left;margin-bottom:6px;transition:.2s}
+.nav-btn:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-btn.active{background:linear-gradient(90deg,rgba(215,169,40,.24),rgba(215,169,40,.08));color:#fff;border-left:3px solid var(--gold2)}
+.ico{width:22px;height:22px;display:inline-grid;place-items:center;font-size:18px}
+.side-links{margin-top:auto}
+.drive-link{display:flex;gap:10px;align-items:center;text-decoration:none;color:#dbe6f2;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 12px;margin-top:8px;font-size:13px}
+.drive-link:hover{background:rgba(255,255,255,.1)}
+.side-foot{color:#7f94ad;font-size:11px;padding:16px 8px 0}
+.main{min-width:0}
+.topbar{height:76px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:15}
+.top-title h2{margin:0;font-size:20px}
+.top-title p{margin:3px 0 0;color:var(--muted);font-size:12px}
+.actions{display:flex;gap:9px;align-items:center}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);padding:9px 13px;border-radius:11px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{border-color:#b9c7da;background:#f9fbfe}
+.btn.primary{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#172238}
+.btn.danger{color:var(--danger)}
+.mobile-menu{display:none}
+.content{padding:26px 28px 44px}
+.page{display:none}
+.page.active{display:block}
+.page-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:20px}
+.page-head h3{font-size:26px;margin:0}
+.page-head p{color:var(--muted);margin:6px 0 0}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.kpi:after{content:"";position:absolute;right:-22px;top:-28px;width:96px;height:96px;border-radius:50%;background:rgba(215,169,40,.09)}
+.kpi .label{color:var(--muted);font-size:12px;font-weight:700}
+.kpi .value{font-size:28px;font-weight:900;margin-top:8px;letter-spacing:-.03em}
+.kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
+.kpi .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+.card-head{padding:17px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.card-head h4{margin:0;font-size:16px}
+.card-head .hint{font-size:12px;color:var(--muted)}
+.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.field{height:40px;border:1px solid var(--line);border-radius:10px;background:#fff;padding:0 11px;color:var(--text);min-width:150px}
+.field:focus{outline:2px solid rgba(23,56,95,.12);border-color:#8fa5bf}
+.search{min-width:260px}
+.gantt-wrap{overflow:auto;max-height:640px}
+.gantt-grid{min-width:1420px}
+.gantt-header,.gantt-row{display:grid;grid-template-columns:520px 900px}
+.gantt-header{position:sticky;top:0;z-index:9;background:#fff;border-bottom:1px solid var(--line)}
+.task-head,.task-cell{position:sticky;left:0;z-index:5;background:#fff;border-right:1px solid var(--line)}
+.task-head{display:grid;grid-template-columns:70px 1fr 110px 100px;padding:0 14px;height:68px;align-items:center;font-size:11px;color:var(--muted);font-weight:800}
+.months{height:68px;display:flex;position:relative;background:#f8faff}
+.month{display:grid;place-items:center;border-right:1px solid var(--line);font-size:11px;font-weight:800;color:#596781}
+.gantt-row{min-height:58px;border-bottom:1px solid #edf1f6}
+.gantt-row:hover .task-cell,.gantt-row:hover .timeline{background:#fafcff}
+.task-cell{display:grid;grid-template-columns:70px 1fr 110px 100px;gap:0;padding:8px 14px;align-items:center}
+.wbs{font-weight:800;color:var(--navy2);font-size:12px}
+.task-name{min-width:0;padding-right:12px}
+.task-name strong{display:block;font-size:13px;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.task-name small{display:block;color:var(--muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
+.date-range{font-size:10px;color:var(--muted);line-height:1.45}
+.badge{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;padding:5px 8px;font-weight:800;font-size:10px;white-space:nowrap}
+.badge.done{background:#e6f7f1;color:#137a59}
+.badge.doing{background:#fff1db;color:#ad6107}
+.badge.planned{background:#eef1f6;color:#627089}
+.timeline{position:relative;background-image:linear-gradient(to right,rgba(221,229,240,.75) 1px,transparent 1px);background-size:90px 100%}
+.bar{position:absolute;top:17px;height:24px;border-radius:8px;min-width:8px;box-shadow:0 4px 10px rgba(16,35,63,.13);overflow:hidden}
+.bar.done{background:linear-gradient(90deg,#16966d,#36ba8d)}
+.bar.doing{background:linear-gradient(90deg,#d87c10,#f1b04e)}
+.bar.planned{background:linear-gradient(90deg,#7d8ca5,#aab4c6)}
+.bar span{display:block;height:100%;background:rgba(255,255,255,.28)}
+.empty{padding:60px;text-align:center;color:var(--muted)}
+.md-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(320px,.65fr);gap:18px;align-items:start}
+.chart-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.chart-card{padding:18px;min-height:260px}
+.chart-card h5{margin:0 0 16px;font-size:14px}
+.chart-card svg{width:100%;height:205px;overflow:visible}
+.resource-table,.entry-table{width:100%;border-collapse:collapse}
+.resource-table th,.resource-table td,.entry-table th,.entry-table td{padding:12px 12px;border-bottom:1px solid #edf1f6;text-align:left;font-size:12px;vertical-align:middle}
+.resource-table th,.entry-table th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.05em;background:#f9fbfd;position:sticky;top:0}
+.resource-table td.num,.entry-table td.num{text-align:right;font-variant-numeric:tabular-nums}
+.util-track{height:7px;background:#e8edf4;border-radius:999px;overflow:hidden;margin-top:4px}
+.util-fill{height:100%;background:linear-gradient(90deg,var(--navy2),var(--gold));border-radius:999px}
+.advisory{font-size:9px;color:#9a6d00;background:#fff6da;padding:3px 6px;border-radius:999px;margin-left:6px}
+.form-card{padding:18px}
+.form-card h4{margin:0 0 15px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:11px;font-weight:800;color:#58657a}
+.form-control{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 11px;background:#fff}
+textarea.form-control{min-height:70px;resize:vertical}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.entry-list{margin-top:18px}
+.entry-scroll{max-height:390px;overflow:auto}
+.icon-btn{border:0;background:transparent;padding:5px;border-radius:7px}
+.icon-btn:hover{background:#eef2f7}
+.import-zone{border:1.5px dashed #aebbd0;background:#f8faff;border-radius:15px;padding:22px;text-align:center}
+.import-zone.drag{background:#eef5ff;border-color:var(--navy2)}
+.import-zone input{display:none}
+.import-zone strong{display:block;margin-bottom:5px}
+.import-zone p{margin:0;color:var(--muted);font-size:12px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(7,18,34,.55);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}
+.modal-backdrop.show{display:flex}
+.modal{width:min(760px,100%);max-height:88vh;overflow:auto;background:#fff;border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.28)}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.modal-head h4{margin:0}
+.modal-body{padding:20px}
+.modal-foot{padding:15px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:9px}
+.preview{overflow:auto;max-height:260px;margin-top:14px;border:1px solid var(--line);border-radius:12px}
+.preview table{border-collapse:collapse;min-width:100%}
+.preview th,.preview td{padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap;font-size:11px}
+.toast-wrap{position:fixed;right:20px;bottom:20px;z-index:200;display:flex;flex-direction:column;gap:9px}
+.toast{background:#10233f;color:#fff;border-radius:12px;padding:12px 15px;box-shadow:0 12px 35px rgba(0,0,0,.2);font-size:13px;animation:slidein .25s ease}
+.toast.error{background:#a82f3e}
+@keyframes slidein{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}
+.progress-ring{width:72px;height:72px;position:relative}
+.progress-ring svg{transform:rotate(-90deg)}
+.progress-ring .pct{position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:900}
+.legend{display:flex;gap:14px;align-items:center;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.legend i{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:5px}
+@media(max-width:1100px){
+  .app{grid-template-columns:82px 1fr}
+  .sidebar{padding:20px 10px}
+  .brand h1,.nav-btn span:not(.ico),.nav-label,.side-links span,.side-foot{display:none}
+  .brand{justify-content:center;padding-bottom:18px}
+  .nav-btn{justify-content:center;padding:12px}
+  .drive-link{justify-content:center}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .md-layout{grid-template-columns:1fr}
+}
+@media(max-width:760px){
+  .app{display:block}
+  .sidebar{position:fixed;left:-280px;width:268px;transition:.25s;z-index:60}
+  .sidebar.open{left:0}
+  .brand h1,.nav-btn span:not(.ico),.nav-label,.side-links span,.side-foot{display:block}
+  .nav-btn{justify-content:flex-start}
+  .drive-link{justify-content:flex-start}
+  .topbar{padding:0 14px;height:68px}
+  .mobile-menu{display:inline-flex}
+  .top-title h2{font-size:16px}
+  .top-title p{display:none}
+  .actions .btn span{display:none}
+  .content{padding:18px 14px 36px}
+  .page-head{align-items:flex-start;flex-direction:column}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi{padding:14px}
+  .kpi .value{font-size:22px}
+  .chart-grid{grid-template-columns:1fr}
+  .toolbar{width:100%}.search{min-width:100%}
+  .gantt-header,.gantt-row{grid-template-columns:390px 900px}
+  .task-head,.task-cell{grid-template-columns:58px 1fr 95px 80px;padding-left:9px;padding-right:9px}
+  .form-grid{grid-template-columns:1fr}
+  .form-group.full{grid-column:auto}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark">TG</div>
+      <h1>Project Control<small>Data Governance 2569</small></h1>
+    </div>
+    <div class="nav-label">Project views</div>
+    <button class="nav-btn active" data-page="gantt"><span class="ico">▦</span><span>Gantt Chart</span></button>
+    <button class="nav-btn" data-page="md"><span class="ico">◷</span><span>MD 2569</span></button>
+    <div class="side-links">
+      <div class="nav-label">Project files</div>
+      <a class="drive-link" target="_blank" rel="noopener" href="https://drive.google.com/drive/folders/0AM0MHyArwN95Uk9PVA"><span class="ico">G</span><span>ไดรฟ์ TG มหิดล</span></a>
+      <a class="drive-link" target="_blank" rel="noopener" href="https://thaiairways365.sharepoint.com/sites/THAIProjectCenter/TGDG/Forms/AllItems.aspx"><span class="ico">S</span><span>ไดรฟ์ TG ฝั่ง TG</span></a>
+    </div>
+    <div class="side-foot">Local project data • Browser storage</div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="btn mobile-menu" id="mobileMenu">☰</button>
+        <div class="top-title"><h2 id="topTitle">Gantt Chart</h2><p id="lastUpdated">ข้อมูลเริ่มต้นจากไฟล์โครงการล่าสุด</p></div>
+      </div>
+      <div class="actions">
+        <button class="btn" id="openImport">⇧ <span>นำเข้า CSV</span></button>
+        <button class="btn" id="exportCurrent">⇩ <span>ส่งออก CSV</span></button>
+        <button class="btn primary" id="resetData">↺ <span>คืนค่าเริ่มต้น</span></button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="page active" id="page-gantt">
+        <div class="page-head">
+          <div><h3>แผนงานโครงการ</h3><p>ช่วงเวลาดำเนินงาน มีนาคม–ธันวาคม 2569</p></div>
+          <div class="legend"><span><i style="background:var(--done)"></i>เสร็จแล้ว</span><span><i style="background:var(--doing)"></i>กำลังดำเนินการ</span><span><i style="background:var(--planned)"></i>ตามแผน</span></div>
+        </div>
+        <div class="kpis" id="ganttKpis"></div>
+        <div class="card">
+          <div class="card-head">
+            <div><h4>Project Timeline</h4><div class="hint" id="ganttCount"></div></div>
+            <div class="toolbar">
+              <input class="field search" id="taskSearch" placeholder="ค้นหา WBS, งาน หรือ Deliverable">
+              <select class="field" id="statusFilter">
+                <option value="">ทุกสถานะ</option><option value="Done">Done</option><option value="In Progress">In Progress</option><option value="Planned">Planned</option>
+              </select>
+            </div>
+          </div>
+          <div class="gantt-wrap">
+            <div class="gantt-grid" id="ganttGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-md">
+        <div class="page-head">
+          <div><h3>Resource Planning & Man-Day</h3><p>บันทึกและติดตามการใช้ Man-Day ประจำปี 2569</p></div>
+          <div class="toolbar">
+            <button class="btn" id="downloadMdTemplate">ดาวน์โหลด Template CSV</button>
+            <button class="btn gold" id="focusEntry">＋ บันทึก Man-Day</button>
+          </div>
+        </div>
+        <div class="kpis" id="mdKpis"></div>
+
+        <div class="md-layout">
+          <div>
+            <div class="chart-grid">
+              <div class="card chart-card"><h5>Planned MD vs Actual MD</h5><div id="planActualChart"></div></div>
+              <div class="card chart-card"><h5>Core Team Utilization</h5><div id="utilDonut"></div></div>
+              <div class="card chart-card"><h5>Resource Utilization (%)</h5><div id="resourceChart"></div></div>
+              <div class="card chart-card"><h5>Workload รายเดือน มี.ค.–ธ.ค. 69</h5><div id="monthChart"></div></div>
+            </div>
+
+            <div class="card" style="margin-top:18px">
+              <div class="card-head"><div><h4>สรุป Man-Day รายบุคคล</h4><div class="hint">Technical Advisor แสดงแยกและไม่รวมใน KPI Core Team ตามชีท MD 2569</div></div></div>
+              <div style="overflow:auto"><table class="resource-table"><thead><tr><th>รายชื่อ</th><th>ตำแหน่ง</th><th style="text-align:right">Planned</th><th style="text-align:right">Actual</th><th style="text-align:right">Remaining</th><th>Utilization</th></tr></thead><tbody id="resourceBody"></tbody></table></div>
+            </div>
+
+            <div class="card entry-list">
+              <div class="card-head">
+                <div><h4>รายการบันทึก Man-Day</h4><div class="hint" id="entryCount"></div></div>
+                <div class="toolbar">
+                  <select class="field" id="entryPersonFilter"><option value="">ทุกคน</option></select>
+                  <input class="field" id="entrySearch" placeholder="ค้นหากิจกรรม/หมายเหตุ">
+                </div>
+              </div>
+              <div class="entry-scroll">
+                <table class="entry-table"><thead><tr><th>วันที่</th><th>ผู้ปฏิบัติงาน</th><th>กิจกรรม</th><th style="text-align:right">MD</th><th>หมายเหตุ</th><th></th></tr></thead><tbody id="entryBody"></tbody></table>
+              </div>
+            </div>
+          </div>
+
+          <aside>
+            <div class="card form-card" id="entryFormCard">
+              <h4>บันทึก Man-Day</h4>
+              <form id="entryForm">
+                <input type="hidden" id="entryId">
+                <div class="form-grid">
+                  <div class="form-group"><label>วันที่</label><input required type="date" class="form-control" id="entryDate" min="2026-03-01" max="2026-12-31"></div>
+                  <div class="form-group"><label>Man-Day</label><select class="form-control" id="entryMd"><option value="0.25">0.25</option><option value="0.5">0.50</option><option value="0.75">0.75</option><option value="1" selected>1.00</option></select></div>
+                  <div class="form-group full"><label>ผู้ปฏิบัติงาน</label><select required class="form-control" id="entryPerson"></select></div>
+                  <div class="form-group full"><label>กิจกรรม / WBS</label><input required list="taskList" class="form-control" id="entryTask" placeholder="เลือกหรือพิมพ์กิจกรรม"><datalist id="taskList"></datalist></div>
+                  <div class="form-group full"><label>หมายเหตุ</label><textarea class="form-control" id="entryNote" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea></div>
+                </div>
+                <div class="form-actions"><button type="button" class="btn" id="cancelEdit" style="display:none">ยกเลิก</button><button type="submit" class="btn primary">บันทึกข้อมูล</button></div>
+              </form>
+            </div>
+
+            <div class="card" style="margin-top:18px;padding:18px">
+              <h4 style="margin:0 0 12px">อัปเดตข้อมูลด้วย CSV</h4>
+              <p style="color:var(--muted);font-size:12px;line-height:1.65;margin-top:0">รองรับไฟล์ Gantt และ Man-Day ระบบตรวจจับประเภทไฟล์จากชื่อคอลัมน์ และอัปเดตรายการเดิมแบบ Upsert</p>
+              <button class="btn" style="width:100%;justify-content:center" id="openImport2">เลือกไฟล์ CSV</button>
+              <div style="height:9px"></div>
+              <button class="btn" style="width:100%;justify-content:center" id="downloadGanttTemplate">Template Gantt CSV</button>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="importModal">
+  <div class="modal">
+    <div class="modal-head"><h4>นำเข้าข้อมูล CSV</h4><button class="icon-btn" id="closeImport">✕</button></div>
+    <div class="modal-body">
+      <div class="import-zone" id="dropZone">
+        <input id="csvFile" type="file" accept=".csv,text/csv">
+        <strong>ลากไฟล์ CSV มาวาง หรือคลิกเพื่อเลือกไฟล์</strong>
+        <p>รองรับ UTF-8 • ระบบจะตรวจจับ Gantt หรือ Man-Day โดยอัตโนมัติ</p>
+      </div>
+      <div id="importInfo" style="margin-top:14px;color:var(--muted);font-size:12px"></div>
+      <div class="preview" id="csvPreview" style="display:none"></div>
+    </div>
+    <div class="modal-foot"><button class="btn" id="cancelImport">ยกเลิก</button><button class="btn primary" id="confirmImport" disabled>อัปเดตข้อมูล</button></div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="taskModal">
+  <div class="modal" style="width:min(620px,100%)">
+    <div class="modal-head"><h4 id="taskModalTitle">รายละเอียดงาน</h4><button class="icon-btn" id="closeTask">✕</button></div>
+    <div class="modal-body" id="taskModalBody"></div>
+    <div class="modal-foot"><button class="btn primary" id="closeTask2">ปิด</button></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+const DEFAULT_TASKS=[{"wbs":"3.5","task":"การพัฒนา Framework และ Operation Model","deliverable":"4.1 Data Governance Framework","owner":"TG / Consultant","start":"2026-03-17","end":"2026-06-30","duration":106,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.1","task":"จัดทำ Data Governance Framework นโยบาย มาตรฐาน และคู่มือปฏิบัติ","deliverable":"Aprroval และ Opration Workflow","owner":"TG / Consultant","start":"2026-03-17","end":"2026-04-14","duration":29,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.2","task":"จัดทำ Data Governance Council/Committee Struture","deliverable":"โครงสร้างคณะกรรมการ (Data Governance Committee/Data Concil)","owner":"TG / Consultant","start":"2026-04-04","end":"2026-05-05","duration":32,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.3","task":"ออกแบบ Data Governance Operating Model ครอบคลุมบทบาทหน้าที่","deliverable":"โมเดลการกำกับดูแล (Operating Model)","owner":"TG / Consultant","start":"2026-04-25","end":"2026-05-26","duration":32,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.4","task":"จัดทำ RACI Matrix สำหรับกระบวนการหลักด้าน Data Governance","deliverable":"","owner":"TG / Consultant","start":"2026-05-16","end":"2026-06-16","duration":32,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.5","task":"Enterprise Data Policy","deliverable":"4.2 Enterprise Data Policy","owner":"TG / Consultant","start":"2026-06-06","end":"2026-06-30","duration":25,"status":"Done","progress":100,"remark":""},{"wbs":"3.6","task":"การกำหนด Data Domain และโครงสร้างผู้รับผิดชอบข้อมูล อย่างน้อย 3 Data Domain","deliverable":"4.3 Data Standards & Guidelines","owner":"TG / Consultant","start":"2026-06-15","end":"2026-07-31","duration":47,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.1","task":"ระบุและนิยาม Data Domain/Sub-domain ขององค์กร","deliverable":"4.4 Data Domain อย่างน้อย 3 Data Domain","owner":"TG / Consultant","start":"2026-06-15","end":"2026-07-03","duration":19,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.2","task":"จัดทำโครงสร้าง Data Owner,Data Steward,Data Custodian","deliverable":"Data domain Owner/Steward/Custodian ของแต่ละ Domain, Sub Domain","owner":"TG / Consultant","start":"2026-06-23","end":"2026-07-15","duration":23,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.3","task":"ประสานงาน และทำ Workshop กับหน่วยงานต่างๆ","deliverable":"","owner":"TG / Consultant","start":"2026-07-05","end":"2026-07-27","duration":23,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.4","task":"Mapping Applications กับ Data Domain","deliverable":"Mapping applications to Data Domains","owner":"TG / Consultant","start":"2026-07-17","end":"2026-07-31","duration":15,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.7","task":"Metada Business Glossary และ Data Catalog","deliverable":"4.5 Data Catalog","owner":"TG / Consultant","start":"2026-07-15","end":"2026-08-31","duration":48,"status":"Planned","progress":0,"remark":""},{"wbs":"3.7.1","task":"จัดทำ Metadata Standard รวมถึง Business/Technical/Operational Metadata","deliverable":"Busuness Metadata, Technical Metadata and Linkage","owner":"TG / Consultant","start":"2026-07-15","end":"2026-08-07","duration":24,"status":"Planned","progress":0,"remark":""},{"wbs":"3.7.2","task":"จัดทำ Business Glossary พร้อมคำจำกัดความ กฎธุรกิจ และมาตรฐานการตั้งชื่อ","deliverable":"Business Glossary","owner":"TG / Consultant","start":"2026-07-28","end":"2026-08-23","duration":27,"status":"Planned","progress":0,"remark":""},{"wbs":"3.7.3","task":"แนะนำแนวทางการใช้งานหรือปรับใช้ Data Catalog","deliverable":"","owner":"TG / Consultant","start":"2026-08-13","end":"2026-08-31","duration":19,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8","task":"Data Lineage และ Data Flow","deliverable":"4.7 Data Flow/Data Lineage","owner":"TG / Consultant","start":"2026-08-15","end":"2026-09-30","duration":47,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8.1","task":"จัดทำ Data Lineage Framework","deliverable":"End-to-End Data Flow","owner":"TG / Consultant","start":"2026-08-15","end":"2026-09-06","duration":23,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8.2","task":"ประสานงานและทำ Workshop กับหน่วยงานต่างๆ เพื่อระบุ Data flow และ Lineage ของข้อมูล","deliverable":"","owner":"TG / Consultant","start":"2026-08-27","end":"2026-09-22","duration":27,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8.3","task":"System-to-System Mapping","deliverable":"","owner":"TG / Consultant","start":"2026-09-12","end":"2026-09-30","duration":19,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9","task":"การบริหารคุณภาพข้อมูล (Data Quality Management)","deliverable":"4.6 Data quality","owner":"TG / Consultant","start":"2026-09-01","end":"2026-10-31","duration":61,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.1","task":"จัดทำ Data Quality Framework","deliverable":"","owner":"TG / Consultant","start":"2026-09-01","end":"2026-09-23","duration":23,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.2","task":"ระบุ Critical Data Elements (CDEs) และกฎตรวจสอบคุณภาพข้อมูล Data Quality Rules & Scorecard","deliverable":"Data Quality Scorecard/KPI","owner":"TG / Consultant","start":"2026-09-13","end":"2026-10-08","duration":26,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.3","task":"จัดทำกระบวนการ Data Quality Monitoring และ Issue Management","deliverable":"","owner":"TG / Consultant","start":"2026-09-28","end":"2026-10-23","duration":26,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.4","task":"Data Cleansing","deliverable":"","owner":"TG / Consultant","start":"2026-10-13","end":"2026-10-31","duration":19,"status":"Planned","progress":0,"remark":""},{"wbs":"3.1","task":"Data Security, Privacy & Compliance Alignment","deliverable":"","owner":"TG / Consultant","start":"2026-10-01","end":"2026-11-15","duration":46,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.1","task":"จัดทำมาตรฐาน Data Classification","deliverable":"","owner":"TG / Consultant","start":"2026-10-01","end":"2026-10-17","duration":17,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.2","task":"จัดทำมาตรฐาน Data Security","deliverable":"","owner":"TG / Consultant","start":"2026-10-07","end":"2026-10-26","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.3","task":"ให้คำแนะนำการควบคุมสิทธิ์และการเข้าถึงข้อมูล","deliverable":"","owner":"TG / Consultant","start":"2026-10-16","end":"2026-11-04","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.4","task":"จัดให้สอดคล้องกับกฎหมาย ข้อบังคับ และนโยบายภายใน","deliverable":"","owner":"TG / Consultant","start":"2026-10-25","end":"2026-11-13","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.5","task":"Data Retention & Disposal Policy","deliverable":"","owner":"TG / Consultant","start":"2026-11-03","end":"2026-11-15","duration":13,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11","task":"Change management และการอบรมบุคลากร","deliverable":"4.9 Change mqnqgement/Training Materials/Knowledge Trasfer","owner":"TG / Consultant","start":"2026-11-01","end":"2026-12-15","duration":45,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11.1","task":"ส่งเสริมวัฒนธรรมองค์กรด้านการกำกับดูแลข้อมูล","deliverable":"","owner":"TG / Consultant","start":"2026-11-01","end":"2026-11-23","duration":23,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11.2","task":"จัดอบรม Data/owner/Steward/User","deliverable":"","owner":"TG / Consultant","start":"2026-11-13","end":"2026-12-08","duration":26,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11.3","task":"จัดทำเอกสารสื่อสารและคู่มือใช้งาน","deliverable":"","owner":"TG / Consultant","start":"2026-11-28","end":"2026-12-15","duration":18,"status":"Planned","progress":0,"remark":""},{"wbs":"3.12","task":"การสนับสนุนการนำไปใช้งานจริง","deliverable":"","owner":"TG / Consultant","start":"2026-12-01","end":"2026-12-24","duration":24,"status":"Planned","progress":0,"remark":""},{"wbs":"3.12.1","task":"ให้คำปรึกษาอย่างต่อเนื่องในแต่ละขั้นตอนของการใช้ Framework","deliverable":"","owner":"TG / Consultant","start":"2026-12-01","end":"2026-12-20","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.12.2","task":"ร่วมตรวจสอบการใช้งานในระบบจริงหรือการ Pilot","deliverable":"","owner":"TG / Consultant","start":"2026-12-10","end":"2026-12-24","duration":15,"status":"Planned","progress":0,"remark":""},{"wbs":"3.13","task":"การรายงานและการสื่อสารระดับผุ้บริหาร","deliverable":"4.10 Executive Report","owner":"TG / Consultant","start":"2026-12-15","end":"2026-12-31","duration":17,"status":"Planned","progress":0,"remark":""},{"wbs":"3.13.1","task":"จัดทำรายงานความคืบหน้า เอกสารสรุป และการนำเสนอ","deliverable":"","owner":"TG / Consultant","start":"2026-12-15","end":"2026-12-31","duration":17,"status":"Planned","progress":0,"remark":""}];
+const DEFAULT_RESOURCES=[{"name":"อ.สุภาภรณ์","position":"ผู้จัดการโครงการ","planned":40,"core":true},{"name":"อ.ธีรยา","position":"Data Governance Lead/Architect","planned":80,"core":true},{"name":"อ.ภัทรพล","position":"Data Governance Specialist/Analyst","planned":160,"core":true},{"name":"อ.ศันศนีย์","position":"Metadata & Data Quality Specialist","planned":120,"core":true},{"name":"อ.กิตติวงศ์","position":"Technical Advisor","planned":10,"core":false}];
+const DEFAULT_ENTRIES=[{"date":"2026-03-01","person":"อ.สุภาภรณ์","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-001"},{"date":"2026-03-01","person":"อ.ธีรยา","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-002"},{"date":"2026-03-01","person":"อ.กิตติวงศ์","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-003"},{"date":"2026-03-02","person":"อ.สุภาภรณ์","task":"งานโครงการ","manday":0.5,"note":"","id":"seed-004"},{"date":"2026-04-21","person":"อ.สุภาภรณ์","task":"ประชุม","manday":1.0,"note":"","id":"seed-005"},{"date":"2026-04-21","person":"อ.ภัทรพล","task":"ประชุม","manday":1.0,"note":"","id":"seed-006"},{"date":"2026-04-21","person":"อ.ศันศนีย์","task":"ประชุม","manday":1.0,"note":"","id":"seed-007"},{"date":"2026-04-21","person":"อ.กิตติวงศ์","task":"ประชุม","manday":1.0,"note":"","id":"seed-008"},{"date":"2026-04-28","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-009"},{"date":"2026-04-28","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-010"},{"date":"2026-04-28","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-011"},{"date":"2026-05-05","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-012"},{"date":"2026-05-05","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-013"},{"date":"2026-05-05","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-014"},{"date":"2026-05-07","person":"อ.ภัทรพล","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-015"},{"date":"2026-05-08","person":"อ.ภัทรพล","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-016"},{"date":"2026-05-09","person":"อ.ภัทรพล","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-017"},{"date":"2026-05-10","person":"อ.ภัทรพล","task":"งานโครงการ","manday":1.0,"note":"","id":"seed-018"},{"date":"2026-05-12","person":"อ.สุภาภรณ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-019"},{"date":"2026-05-12","person":"อ.ธีรยา","task":"ประชุม","manday":0.5,"note":"","id":"seed-020"},{"date":"2026-05-12","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-021"},{"date":"2026-05-12","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-022"},{"date":"2026-05-12","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-023"},{"date":"2026-05-21","person":"อ.สุภาภรณ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-024"},{"date":"2026-05-21","person":"อ.ธีรยา","task":"ประชุม","manday":0.5,"note":"","id":"seed-025"},{"date":"2026-05-21","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-026"},{"date":"2026-05-21","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-027"},{"date":"2026-05-21","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-028"},{"date":"2026-05-26","person":"อ.ธีรยา","task":"ประชุม","manday":0.5,"note":"","id":"seed-029"},{"date":"2026-05-26","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-030"},{"date":"2026-05-26","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-031"},{"date":"2026-05-26","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-032"},{"date":"2026-06-04","person":"อ.ธีรยา","task":"ประชุม","manday":0.5,"note":"","id":"seed-033"},{"date":"2026-06-04","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-034"},{"date":"2026-06-04","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-035"},{"date":"2026-06-04","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-036"},{"date":"2026-06-09","person":"อ.ธีรยา","task":"ประชุม","manday":0.5,"note":"","id":"seed-037"},{"date":"2026-06-09","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-038"},{"date":"2026-06-09","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-039"},{"date":"2026-06-09","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-040"},{"date":"2026-06-16","person":"อ.ธีรยา","task":"ประชุม","manday":0.5,"note":"","id":"seed-041"},{"date":"2026-06-16","person":"อ.ภัทรพล","task":"ประชุม","manday":0.5,"note":"","id":"seed-042"},{"date":"2026-06-16","person":"อ.ศันศนีย์","task":"ประชุม","manday":0.5,"note":"","id":"seed-043"},{"date":"2026-06-16","person":"อ.กิตติวงศ์","task":"ประชุม","manday":0.5,"note":"","id":"seed-044"}];
+const MONTH_PLAN=[{"month":"2026-03","label":"มี.ค. 69","planned":41},{"month":"2026-04","label":"เม.ย. 69","planned":41},{"month":"2026-05","label":"พ.ค. 69","planned":41},{"month":"2026-06","label":"มิ.ย. 69","planned":41},{"month":"2026-07","label":"ก.ค. 69","planned":41},{"month":"2026-08","label":"ส.ค. 69","planned":41},{"month":"2026-09","label":"ก.ย. 69","planned":41},{"month":"2026-10","label":"ต.ค. 69","planned":41},{"month":"2026-11","label":"พ.ย. 69","planned":41},{"month":"2026-12","label":"ธ.ค. 69","planned":41}];
+const STORAGE_KEY="tg_project_control_2569_v3";
+let state={tasks:[],resources:[],entries:[],updatedAt:null};
+let activePage="gantt", pendingImport=null;
+
+function deepCopy(x){return JSON.parse(JSON.stringify(x))}
+function loadState(){
+  const saved=localStorage.getItem(STORAGE_KEY);
+  if(saved){try{state=JSON.parse(saved)}catch(e){resetState(false)}}
+  else resetState(false);
+  if(!Array.isArray(state.tasks)||!Array.isArray(state.resources)||!Array.isArray(state.entries)) resetState(false);
+}
+function resetState(save=true){
+  state={tasks:deepCopy(DEFAULT_TASKS),resources:deepCopy(DEFAULT_RESOURCES),entries:deepCopy(DEFAULT_ENTRIES),updatedAt:new Date().toISOString()};
+  if(save) persist();
+}
+function persist(){state.updatedAt=new Date().toISOString();localStorage.setItem(STORAGE_KEY,JSON.stringify(state));updateStamp()}
+function updateStamp(){
+  const d=state.updatedAt?new Date(state.updatedAt):null;
+  document.getElementById("lastUpdated").textContent=d?"อัปเดตล่าสุด "+d.toLocaleString("th-TH",{dateStyle:"medium",timeStyle:"short"}):"ข้อมูลเริ่มต้นจากไฟล์โครงการล่าสุด";
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function fmt(n,d=1){return Number(n||0).toLocaleString("th-TH",{minimumFractionDigits:0,maximumFractionDigits:d})}
+function dmy(s){if(!s)return"-";return new Date(s+"T00:00:00").toLocaleDateString("th-TH",{day:"2-digit",month:"short",year:"2-digit"})}
+function statusClass(s){return s==="Done"?"done":s==="In Progress"?"doing":"planned"}
+function toast(msg,error=false){const el=document.createElement("div");el.className="toast"+(error?" error":"");el.textContent=msg;document.getElementById("toasts").appendChild(el);setTimeout(()=>el.remove(),3200)}
+function setPage(page){
+  activePage=page;
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.getElementById("page-"+page).classList.add("active");
+  document.querySelectorAll(".nav-btn").forEach(x=>x.classList.toggle("active",x.dataset.page===page));
+  document.getElementById("topTitle").textContent=page==="gantt"?"Gantt Chart":"MD 2569";
+  location.hash=page;
+  document.getElementById("sidebar").classList.remove("open");
+  if(page==="md")renderMD();
+}
+function makeKpi(label,value,sub,color){
+  return `<div class="kpi"><div class="label"><span class="dot" style="background:${color}"></span>${esc(label)}</div><div class="value">${value}</div><div class="sub">${esc(sub)}</div></div>`
+}
+function renderGantt(){
+  const q=document.getElementById("taskSearch").value.trim().toLowerCase();
+  const st=document.getElementById("statusFilter").value;
+  const filtered=state.tasks.filter(t=>(!st||t.status===st)&&(!q||[t.wbs,t.task,t.deliverable,t.owner].join(" ").toLowerCase().includes(q)));
+  const count=s=>state.tasks.filter(t=>t.status===s).length;
+  const avg=state.tasks.length?state.tasks.reduce((a,t)=>a+Number(t.progress||0),0)/state.tasks.length:0;
+  document.getElementById("ganttKpis").innerHTML=
+    makeKpi("กิจกรรมทั้งหมด",state.tasks.length,"รายการจากชีท Gantt Chart","#17385f")+
+    makeKpi("เสร็จแล้ว",count("Done"),"Completed tasks","#1f9d74")+
+    makeKpi("กำลังดำเนินการ",count("In Progress"),"Active tasks","#e58a17")+
+    makeKpi("ความคืบหน้าเฉลี่ย",fmt(avg,0)+"%","เฉลี่ยจากทุกกิจกรรม","#d7a928");
+  document.getElementById("ganttCount").textContent=`แสดง ${filtered.length} จาก ${state.tasks.length} รายการ`;
+  const start=new Date("2026-03-01T00:00:00"), end=new Date("2026-12-31T00:00:00"), total=(end-start)/86400000+1;
+  const months=[["มี.ค. 69",31],["เม.ย. 69",30],["พ.ค. 69",31],["มิ.ย. 69",30],["ก.ค. 69",31],["ส.ค. 69",31],["ก.ย. 69",30],["ต.ค. 69",31],["พ.ย. 69",30],["ธ.ค. 69",31]];
+  let html=`<div class="gantt-header"><div class="task-head"><span>WBS</span><span>Task / Activity</span><span>ช่วงเวลา</span><span>สถานะ</span></div><div class="months">${months.map(m=>`<div class="month" style="flex:${m[1]}">${m[0]}</div>`).join("")}</div></div>`;
+  if(!filtered.length)html+=`<div class="empty">ไม่พบรายการที่ค้นหา</div>`;
+  filtered.forEach(t=>{
+    const s=new Date(t.start+"T00:00:00"),e=new Date(t.end+"T00:00:00");
+    const left=Math.max(0,(s-start)/86400000/total*100), width=Math.max(.8,((e-s)/86400000+1)/total*100);
+    const main=String(t.wbs).split(".").length===2;
+    html+=`<div class="gantt-row" data-wbs="${esc(t.wbs)}">
+      <div class="task-cell" style="${main?"background:#fbfcfe":""}">
+        <div class="wbs">${esc(t.wbs)}</div>
+        <div class="task-name"><strong style="${main?"font-size:14px":""}">${esc(t.task)}</strong><small>${esc(t.deliverable||t.owner||"")}</small></div>
+        <div class="date-range">${dmy(t.start)}<br>${dmy(t.end)}</div>
+        <div><span class="badge ${statusClass(t.status)}">${esc(t.status)}</span></div>
+      </div>
+      <div class="timeline">
+        <div class="bar ${statusClass(t.status)}" title="${esc(t.task)}" style="left:${left}%;width:${Math.min(width,100-left)}%"><span style="width:${Math.min(100,Number(t.progress||0))}%"></span></div>
+      </div>
+    </div>`;
+  });
+  const grid=document.getElementById("ganttGrid");grid.innerHTML=html;
+  grid.querySelectorAll(".gantt-row").forEach(r=>r.addEventListener("click",()=>openTask(r.dataset.wbs)));
+}
+function openTask(wbs){
+  const t=state.tasks.find(x=>String(x.wbs)===String(wbs));if(!t)return;
+  document.getElementById("taskModalTitle").textContent=`WBS ${t.wbs}`;
+  document.getElementById("taskModalBody").innerHTML=`
+  <div style="font-size:18px;font-weight:900;margin-bottom:16px">${esc(t.task)}</div>
+  <div style="display:grid;grid-template-columns:140px 1fr;gap:10px;font-size:13px">
+    <b>Deliverable</b><span>${esc(t.deliverable||"-")}</span><b>Owner</b><span>${esc(t.owner||"-")}</span>
+    <b>Start</b><span>${dmy(t.start)}</span><b>End</b><span>${dmy(t.end)}</span><b>Duration</b><span>${fmt(t.duration,0)} วัน</span>
+    <b>Status</b><span><span class="badge ${statusClass(t.status)}">${esc(t.status)}</span></span>
+    <b>Progress</b><span>${fmt(t.progress,0)}%</span><b>Remark</b><span>${esc(t.remark||"-")}</span>
+  </div>`;
+  document.getElementById("taskModal").classList.add("show");
+}
+function actualByPerson(){
+  const o={};state.resources.forEach(r=>o[r.name]=0);
+  state.entries.forEach(e=>{if(o[e.person]===undefined)o[e.person]=0;o[e.person]+=Number(e.manday||0)});
+  return o;
+}
+function coreTotals(){
+  const actual=actualByPerson();
+  const core=state.resources.filter(r=>r.core!==false);
+  const planned=core.reduce((a,r)=>a+Number(r.planned||0),0);
+  const used=core.reduce((a,r)=>a+Number(actual[r.name]||0),0);
+  return{planned,used,remaining:planned-used,util:planned?used/planned*100:0}
+}
+function monthActual(){
+  const m={};MONTH_PLAN.forEach(x=>m[x.month]=0);
+  state.entries.forEach(e=>{const key=String(e.date||"").slice(0,7);if(m[key]!==undefined&&state.resources.find(r=>r.name===e.person)?.core!==false)m[key]+=Number(e.manday||0)});
+  return m;
+}
+function renderMD(){
+  const actual=actualByPerson(),tot=coreTotals();
+  document.getElementById("mdKpis").innerHTML=
+    makeKpi("Planned MD",fmt(tot.planned),"Core Team Plan","#17385f")+
+    makeKpi("Actual MD",fmt(tot.used),"บันทึกแล้วทั้งหมด","#1f9d74")+
+    makeKpi("Remaining MD",fmt(tot.remaining),"คงเหลือตามแผน","#e58a17")+
+    makeKpi("Utilization",fmt(tot.util,1)+"%","Core Team","#d7a928");
+  renderPlanActual(tot);renderDonut(tot.util);renderResourceChart(actual);renderMonthChart();
+  document.getElementById("resourceBody").innerHTML=state.resources.map(r=>{
+    const used=actual[r.name]||0,rem=Number(r.planned||0)-used,u=r.planned?used/r.planned*100:0;
+    return `<tr><td><b>${esc(r.name)}</b>${r.core===false?'<span class="advisory">Advisor</span>':''}</td><td>${esc(r.position)}</td><td class="num">${fmt(r.planned)}</td><td class="num"><b>${fmt(used)}</b></td><td class="num">${fmt(rem)}</td><td style="min-width:120px"><b>${fmt(u,1)}%</b><div class="util-track"><div class="util-fill" style="width:${Math.min(100,u)}%"></div></div></td></tr>`;
+  }).join("");
+  fillFilters();renderEntries();
+}
+function renderPlanActual(t){
+  const max=Math.max(t.planned,1),pw=100,aw=Math.max(1,t.used/max*100);
+  document.getElementById("planActualChart").innerHTML=`<svg viewBox="0 0 420 205" role="img">
+    <text x="0" y="28" font-size="12" fill="#6c7890">Planned MD</text><rect x="0" y="42" width="400" height="30" rx="9" fill="#e7edf5"/><rect x="0" y="42" width="${pw*4}" height="30" rx="9" fill="#17385f"/><text x="390" y="62" text-anchor="end" fill="#fff" font-weight="800">${fmt(t.planned)}</text>
+    <text x="0" y="112" font-size="12" fill="#6c7890">Actual MD</text><rect x="0" y="126" width="400" height="30" rx="9" fill="#e7edf5"/><rect x="0" y="126" width="${aw*4}" height="30" rx="9" fill="#d7a928"/><text x="${Math.max(42,aw*4-8)}" y="146" text-anchor="end" fill="${aw>18?"#172238":"#172238"}" font-weight="800">${fmt(t.used)}</text>
+    <text x="0" y="190" font-size="11" fill="#6c7890">Remaining ${fmt(t.remaining)} MD</text>
+  </svg>`;
+}
+function renderDonut(util){
+  const r=64,c=2*Math.PI*r,d=Math.min(100,util)/100*c;
+  document.getElementById("utilDonut").innerHTML=`<div style="height:205px;display:flex;align-items:center;justify-content:center;gap:26px">
+   <div class="progress-ring" style="width:160px;height:160px"><svg width="160" height="160"><circle cx="80" cy="80" r="${r}" fill="none" stroke="#e8edf4" stroke-width="16"/><circle cx="80" cy="80" r="${r}" fill="none" stroke="#d7a928" stroke-width="16" stroke-linecap="round" stroke-dasharray="${d} ${c-d}"/></svg><div class="pct" style="font-size:24px">${fmt(util,1)}%</div></div>
+   <div><b style="font-size:22px">${fmt(coreTotals().used)} MD</b><div style="color:var(--muted);font-size:12px;margin-top:4px">จากแผน ${fmt(coreTotals().planned)} MD</div></div>
+  </div>`;
+}
+function renderResourceChart(actual){
+  const max=Math.max(...state.resources.map(r=>r.planned?((actual[r.name]||0)/r.planned*100):0),1);
+  const rows=state.resources.map((r,i)=>{const u=r.planned?(actual[r.name]||0)/r.planned*100:0;const y=24+i*36;return `<text x="0" y="${y+12}" font-size="10" fill="#56647a">${esc(r.name.replace("อ.",""))}</text><rect x="88" y="${y}" width="286" height="16" rx="6" fill="#e8edf4"/><rect x="88" y="${y}" width="${Math.min(286,u/100*286)}" height="16" rx="6" fill="${r.core===false?"#8a96aa":"#17385f"}"/><text x="402" y="${y+12}" text-anchor="end" font-size="10" font-weight="800">${fmt(u,1)}%</text>`}).join("");
+  document.getElementById("resourceChart").innerHTML=`<svg viewBox="0 0 420 205">${rows}</svg>`;
+}
+function renderMonthChart(){
+  const actual=monthActual(),max=Math.max(...MONTH_PLAN.map(m=>Math.max(m.planned,actual[m.month]||0)),1);
+  const baseY=172,chartH=132,groupW=39;
+  let bars="",labels="";
+  MONTH_PLAN.forEach((m,i)=>{const x=10+i*groupW;const ph=m.planned/max*chartH,ah=(actual[m.month]||0)/max*chartH;
+    bars+=`<rect x="${x}" y="${baseY-ph}" width="13" height="${ph}" rx="3" fill="#cbd5e3"/><rect x="${x+15}" y="${baseY-ah}" width="13" height="${ah}" rx="3" fill="#d7a928"/>`;
+    labels+=`<text x="${x+14}" y="192" text-anchor="middle" font-size="9" fill="#6c7890">${m.label.split(" ")[0]}</text>`;
+  });
+  document.getElementById("monthChart").innerHTML=`<svg viewBox="0 0 420 205"><line x1="0" y1="${baseY}" x2="410" y2="${baseY}" stroke="#dce4ee"/>${bars}${labels}<text x="8" y="12" font-size="10" fill="#6c7890">■ Planned</text><text x="85" y="12" font-size="10" fill="#b07e05">■ Actual</text></svg>`;
+}
+function fillFilters(){
+  const personSel=document.getElementById("entryPerson"),filter=document.getElementById("entryPersonFilter");
+  const current=personSel.value,fc=filter.value;
+  personSel.innerHTML=state.resources.map(r=>`<option value="${esc(r.name)}">${esc(r.name)} — ${esc(r.position)}</option>`).join("");
+  filter.innerHTML='<option value="">ทุกคน</option>'+state.resources.map(r=>`<option value="${esc(r.name)}">${esc(r.name)}</option>`).join("");
+  if(state.resources.some(r=>r.name===current))personSel.value=current;if(state.resources.some(r=>r.name===fc))filter.value=fc;
+  document.getElementById("taskList").innerHTML=state.tasks.map(t=>`<option value="${esc(t.wbs+" "+t.task)}"></option>`).join("");
+}
+function renderEntries(){
+  const person=document.getElementById("entryPersonFilter").value,q=document.getElementById("entrySearch").value.trim().toLowerCase();
+  const list=[...state.entries].filter(e=>(!person||e.person===person)&&(!q||[e.task,e.note,e.person,e.date].join(" ").toLowerCase().includes(q))).sort((a,b)=>b.date.localeCompare(a.date)||String(b.id).localeCompare(String(a.id)));
+  document.getElementById("entryCount").textContent=`${list.length} รายการ • รวม ${fmt(list.reduce((a,e)=>a+Number(e.manday||0),0))} MD`;
+  document.getElementById("entryBody").innerHTML=list.length?list.map(e=>`<tr><td>${dmy(e.date)}</td><td><b>${esc(e.person)}</b></td><td>${esc(e.task)}</td><td class="num"><b>${fmt(e.manday,2)}</b></td><td>${esc(e.note||"-")}</td><td style="white-space:nowrap"><button class="icon-btn edit-entry" data-id="${esc(e.id)}" title="แก้ไข">✎</button><button class="icon-btn del-entry" data-id="${esc(e.id)}" title="ลบ">🗑</button></td></tr>`).join(""):`<tr><td colspan="6" class="empty">ไม่พบรายการ</td></tr>`;
+  document.querySelectorAll(".edit-entry").forEach(b=>b.onclick=()=>editEntry(b.dataset.id));
+  document.querySelectorAll(".del-entry").forEach(b=>b.onclick=()=>deleteEntry(b.dataset.id));
+}
+function editEntry(id){
+  const e=state.entries.find(x=>String(x.id)===String(id));if(!e)return;
+  entryId.value=e.id;entryDate.value=e.date;entryPerson.value=e.person;entryTask.value=e.task;entryMd.value=String(e.manday);entryNote.value=e.note||"";
+  cancelEdit.style.display="inline-flex";document.getElementById("entryFormCard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function deleteEntry(id){if(!confirm("ลบรายการ Man-Day นี้หรือไม่?"))return;state.entries=state.entries.filter(e=>String(e.id)!==String(id));persist();renderMD();toast("ลบรายการแล้ว")}
+function clearEntryForm(){entryForm.reset();entryId.value="";cancelEdit.style.display="none";entryDate.value=defaultDate()}
+function defaultDate(){const now=new Date();return now.getFullYear()===2026&&now.getMonth()>=2&&now.getMonth()<=11?now.toISOString().slice(0,10):"2026-03-01"}
+function saveEntry(ev){
+  ev.preventDefault();
+  const id=entryId.value||("md-"+Date.now()),date=entryDate.value,person=entryPerson.value,task=entryTask.value.trim(),manday=Number(entryMd.value),note=entryNote.value.trim();
+  if(!date||!person||!task||!manday)return toast("กรุณากรอกข้อมูลให้ครบ",true);
+  const daily=state.entries.filter(e=>e.date===date&&e.person===person&&String(e.id)!==String(id)).reduce((a,e)=>a+Number(e.manday||0),0);
+  if(daily+manday>1.0001&&!confirm(`วันที่นี้ ${person} มี Man-Day รวม ${fmt(daily+manday,2)} ซึ่งเกิน 1 วัน ต้องการบันทึกต่อหรือไม่?`))return;
+  const obj={id,date,person,task,manday,note};
+  const idx=state.entries.findIndex(e=>String(e.id)===String(id));if(idx>=0)state.entries[idx]=obj;else state.entries.push(obj);
+  persist();clearEntryForm();renderMD();toast(idx>=0?"อัปเดตรายการแล้ว":"บันทึก Man-Day แล้ว");
+}
+function csvEscape(v){const s=String(v??"");return /[",\n\r]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}
+function download(name,text,type="text/csv;charset=utf-8"){
+  const blob=new Blob(["\ufeff"+text],{type}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)
+}
+function exportGantt(){
+  const h=["WBS","Task / Activity","Deliverable","Owner","Start","End","Duration","Status","% Complete","Remark"];
+  const rows=state.tasks.map(t=>[t.wbs,t.task,t.deliverable,t.owner,t.start,t.end,t.duration,t.status,t.progress,t.remark]);
+  download("TG_Gantt_Chart_2569.csv",[h,...rows].map(r=>r.map(csvEscape).join(",")).join("\n"));
+}
+function exportMD(){
+  const h=["ID","Date","Person","Task / Activity","Man-Day","Note"];
+  const rows=[...state.entries].sort((a,b)=>a.date.localeCompare(b.date)).map(e=>[e.id,e.date,e.person,e.task,e.manday,e.note]);
+  download("TG_MD_2569.csv",[h,...rows].map(r=>r.map(csvEscape).join(",")).join("\n"));
+}
+function parseCSV(text){
+  text=text.replace(/^\ufeff/,"");let rows=[],row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
+    if(q){if(c==='"'&&n==='"'){cell+='"';i++}else if(c==='"')q=false;else cell+=c}
+    else{if(c==='"')q=true;else if(c===","){row.push(cell);cell=""}else if(c==="\n"){row.push(cell.replace(/\r$/,""));rows.push(row);row=[];cell=""}else cell+=c}
+  }
+  row.push(cell.replace(/\r$/,""));if(row.some(x=>x!==""))rows.push(row);
+  return rows.filter(r=>r.some(x=>String(x).trim()!==""));
+}
+function norm(s){return String(s||"").toLowerCase().replace(/[\s_\-/%().]+/g,"")}
+function detectCSV(rows){
+  if(!rows.length)return null;const h=rows[0].map(norm);
+  if(h.includes("wbs")&&(h.includes("taskactivity")||h.includes("task")))return"gantt";
+  if((h.includes("date")||h.includes("วันที่"))&&(h.includes("person")||h.includes("รายชื่อ")||h.includes("ผู้ปฏิบัติงาน"))&&(h.includes("manday")||h.includes("md")))return"md";
+  return null;
+}
+function mapRows(rows){
+  const headers=rows[0],keys=headers.map(norm);return rows.slice(1).filter(r=>r.some(x=>String(x).trim())).map(r=>{const o={};keys.forEach((k,i)=>o[k]=r[i]??"");return o})
+}
+function getCol(o,...keys){for(const k of keys){if(o[norm(k)]!==undefined)return o[norm(k)]}return""}
+function normalizeDate(v){
+  const s=String(v||"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const d=new Date(s);return isNaN(d)?s:d.toISOString().slice(0,10)
+}
+function previewCSV(rows,type,fileName){
+  document.getElementById("importInfo").innerHTML=`ไฟล์: <b>${esc(fileName)}</b> • ตรวจพบข้อมูล: <b>${type==="gantt"?"Gantt Chart":"Man-Day"}</b> • ${Math.max(0,rows.length-1)} แถว`;
+  const p=rows.slice(0,6),cols=Math.min(p[0]?.length||0,10);
+  document.getElementById("csvPreview").style.display="block";
+  document.getElementById("csvPreview").innerHTML=`<table>${p.map((r,ri)=>`<tr>${r.slice(0,cols).map(c=>ri===0?`<th>${esc(c)}</th>`:`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table>`;
+}
+function handleFile(file){
+  if(!file)return;const reader=new FileReader();
+  reader.onload=()=>{try{const rows=parseCSV(reader.result),type=detectCSV(rows);if(!type){pendingImport=null;confirmImport.disabled=true;return toast("ไม่สามารถตรวจจับประเภท CSV ได้ กรุณาใช้ Template",true)}pendingImport={rows,type,fileName:file.name};previewCSV(rows,type,file.name);confirmImport.disabled=false}catch(e){toast("อ่านไฟล์ CSV ไม่สำเร็จ",true)}};
+  reader.readAsText(file,"utf-8");
+}
+function importCSV(){
+  if(!pendingImport)return;const records=mapRows(pendingImport.rows);let updated=0,added=0,warnings=0;
+  if(pendingImport.type==="gantt"){
+    records.forEach(o=>{
+      const wbs=String(getCol(o,"WBS")).trim();if(!wbs)return;
+      const obj={wbs,task:getCol(o,"Task / Activity","Task"),deliverable:getCol(o,"Deliverable"),owner:getCol(o,"Owner"),start:normalizeDate(getCol(o,"Start")),end:normalizeDate(getCol(o,"End")),duration:Number(getCol(o,"Duration")||0),status:getCol(o,"Status")||"Planned",progress:Number(getCol(o,"% Complete","Progress")||0),remark:getCol(o,"Remark")};
+      if(obj.progress<=1&&String(getCol(o,"% Complete","Progress")).includes("."))obj.progress*=100;
+      const i=state.tasks.findIndex(t=>String(t.wbs)===wbs);if(i>=0){state.tasks[i]={...state.tasks[i],...obj};updated++}else{state.tasks.push(obj);added++}
+    });
+  }else{
+    records.forEach(o=>{
+      const date=normalizeDate(getCol(o,"Date","วันที่")),person=String(getCol(o,"Person","รายชื่อ","ผู้ปฏิบัติงาน")).trim(),task=String(getCol(o,"Task / Activity","Task","กิจกรรม")).trim(),manday=Number(getCol(o,"Man-Day","MD","Manday")),note=getCol(o,"Note","Remark","หมายเหตุ"),rawId=getCol(o,"ID");
+      if(!date||!person||!task||!manday)return;
+      const id=rawId||`csv-${date}-${person}-${task}`;const obj={id,date,person,task,manday,note};
+      if(!state.resources.some(r=>r.name===person)){warnings++;return}
+      const i=state.entries.findIndex(e=>String(e.id)===String(id)||(e.date===date&&e.person===person&&e.task===task));
+      if(i>=0){obj.id=state.entries[i].id;state.entries[i]=obj;updated++}else{state.entries.push(obj);added++}
+    });
+  }
+  persist();closeImportModal();renderGantt();renderMD();toast(`อัปเดตสำเร็จ: เพิ่ม ${added} • แก้ไข ${updated}${warnings?` • ข้าม ${warnings}`:""}`);
+}
+function openImportModal(){pendingImport=null;csvFile.value="";csvPreview.style.display="none";importInfo.textContent="";confirmImport.disabled=true;importModal.classList.add("show")}
+function closeImportModal(){importModal.classList.remove("show");pendingImport=null}
+function downloadGanttTemplate(){download("Gantt_Update_Template.csv","WBS,Task / Activity,Deliverable,Owner,Start,End,Duration,Status,% Complete,Remark\n3.6.1,ตัวอย่างกิจกรรม,ตัวอย่าง Deliverable,TG / Consultant,2026-06-15,2026-06-30,16,In Progress,50,")}
+function downloadMdTemplate(){download("MD_2569_Update_Template.csv","ID,Date,Person,Task / Activity,Man-Day,Note\n,2026-06-18,อ.สุภาภรณ์,ประชุมติดตามโครงการ,0.5,")}
+function initEvents(){
+  document.querySelectorAll(".nav-btn").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+  taskSearch.oninput=renderGantt;statusFilter.onchange=renderGantt;
+  entryPersonFilter.onchange=renderEntries;entrySearch.oninput=renderEntries;
+  entryForm.onsubmit=saveEntry;cancelEdit.onclick=clearEntryForm;focusEntry.onclick=()=>entryFormCard.scrollIntoView({behavior:"smooth"});
+  openImport.onclick=openImportModal;openImport2.onclick=openImportModal;closeImport.onclick=closeImportModal;cancelImport.onclick=closeImportModal;
+  closeTask.onclick=()=>taskModal.classList.remove("show");closeTask2.onclick=()=>taskModal.classList.remove("show");
+  dropZone.onclick=()=>csvFile.click();csvFile.onchange=e=>handleFile(e.target.files[0]);
+  ["dragenter","dragover"].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.add("drag")}));
+  ["dragleave","drop"].forEach(ev=>dropZone.addEventListener(ev,e=>{e.preventDefault();dropZone.classList.remove("drag")}));
+  dropZone.addEventListener("drop",e=>handleFile(e.dataTransfer.files[0]));
+  confirmImport.onclick=importCSV;
+  exportCurrent.onclick=()=>activePage==="gantt"?exportGantt():exportMD();
+  downloadGanttTemplate.onclick=downloadGanttTemplate;downloadMdTemplate.onclick=downloadMdTemplate;
+  resetData.onclick=()=>{if(confirm("คืนข้อมูลทั้งหมดเป็นค่าเริ่มต้นจากไฟล์โครงการหรือไม่? ข้อมูลที่บันทึกเพิ่มใน Browser จะถูกลบ")){resetState();renderGantt();renderMD();toast("คืนค่าเริ่มต้นแล้ว")}};
+  mobileMenu.onclick=()=>sidebar.classList.toggle("open");
+  [importModal,taskModal].forEach(m=>m.addEventListener("click",e=>{if(e.target===m)m.classList.remove("show")}));
+}
+loadState();initEvents();updateStamp();entryDate.value=defaultDate();renderGantt();renderMD();
+const initialHash=location.hash.replace("#","");if(["gantt","md"].includes(initialHash))setPage(initialHash);
+</script>
+</body>
+</html>
