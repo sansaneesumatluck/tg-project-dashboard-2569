@@ -201,7 +201,7 @@ textarea.form-control{min-height:70px;resize:vertical}
         <div class="top-title"><h2 id="topTitle">Gantt Chart</h2><p id="lastUpdated">ข้อมูลเริ่มต้นจากไฟล์โครงการล่าสุด</p></div>
       </div>
       <div class="actions">
-        <button class="btn" id="openImport">⇧ <span>นำเข้า CSV</span></button>
+        <button class="btn" id="openImport">⇧ <span>นำเข้าไฟล์</span></button>
         <button class="btn" id="exportCurrent">⇩ <span>ส่งออก CSV</span></button>
         <button class="btn primary" id="resetData">↺ <span>คืนค่าเริ่มต้น</span></button>
       </div>
@@ -286,8 +286,8 @@ textarea.form-control{min-height:70px;resize:vertical}
 
             <div class="card" style="margin-top:18px;padding:18px">
               <h4 style="margin:0 0 12px">อัปเดตข้อมูลด้วย CSV</h4>
-              <p style="color:var(--muted);font-size:12px;line-height:1.65;margin-top:0">รองรับไฟล์ Gantt และ Man-Day ระบบตรวจจับประเภทไฟล์จากชื่อคอลัมน์ และอัปเดตรายการเดิมแบบ Upsert</p>
-              <button class="btn" style="width:100%;justify-content:center" id="openImport2">เลือกไฟล์ CSV</button>
+              <p style="color:var(--muted);font-size:12px;line-height:1.65;margin-top:0">รองรับไฟล์ Excel (.xlsx) ชีท Gantt Chart และไฟล์ CSV ระบบตรวจจับประเภทไฟล์จากชื่อคอลัมน์</p>
+              <button class="btn" style="width:100%;justify-content:center" id="openImport2">เลือกไฟล์ Excel / CSV</button>
               <div style="height:9px"></div>
               <button class="btn" style="width:100%;justify-content:center" id="downloadGanttTemplate">Template Gantt CSV</button>
             </div>
@@ -303,11 +303,12 @@ textarea.form-control{min-height:70px;resize:vertical}
     <div class="modal-head"><h4>นำเข้าข้อมูล CSV</h4><button class="icon-btn" id="closeImport">✕</button></div>
     <div class="modal-body">
       <div class="import-zone" id="dropZone">
-        <input id="csvFile" type="file" accept=".csv,text/csv">
-        <strong>ลากไฟล์ CSV มาวาง หรือคลิกเพื่อเลือกไฟล์</strong>
-        <p>รองรับ UTF-8 • ระบบจะตรวจจับ Gantt หรือ Man-Day โดยอัตโนมัติ</p>
+        <input id="csvFile" type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
+        <strong>ลากไฟล์ Excel / CSV มาวาง หรือคลิกเพื่อเลือกไฟล์</strong>
+        <p>รองรับ .xlsx ชีท Gantt Chart และ CSV UTF-8 • ระบบจะตรวจจับ Gantt หรือ Man-Day โดยอัตโนมัติ</p>
       </div>
       <div id="importInfo" style="margin-top:14px;color:var(--muted);font-size:12px"></div>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--muted)"><input type="checkbox" id="replaceGantt"> แทนที่ข้อมูล Gantt Chart เดิมทั้งหมดเมื่อไฟล์ที่นำเข้าเป็น Gantt</label>
       <div class="preview" id="csvPreview" style="display:none"></div>
     </div>
     <div class="modal-foot"><button class="btn" id="cancelImport">ยกเลิก</button><button class="btn primary" id="confirmImport" disabled>อัปเดตข้อมูล</button></div>
@@ -323,6 +324,7 @@ textarea.form-control{min-height:70px;resize:vertical}
 </div>
 <div class="toast-wrap" id="toasts"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 const DEFAULT_TASKS=[{"wbs":"3.5","task":"การพัฒนา Framework และ Operation Model","deliverable":"4.1 Data Governance Framework","owner":"TG / Consultant","start":"2026-03-17","end":"2026-06-30","duration":106,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.1","task":"จัดทำ Data Governance Framework นโยบาย มาตรฐาน และคู่มือปฏิบัติ","deliverable":"Aprroval และ Opration Workflow","owner":"TG / Consultant","start":"2026-03-17","end":"2026-04-14","duration":29,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.2","task":"จัดทำ Data Governance Council/Committee Struture","deliverable":"โครงสร้างคณะกรรมการ (Data Governance Committee/Data Concil)","owner":"TG / Consultant","start":"2026-04-04","end":"2026-05-05","duration":32,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.3","task":"ออกแบบ Data Governance Operating Model ครอบคลุมบทบาทหน้าที่","deliverable":"โมเดลการกำกับดูแล (Operating Model)","owner":"TG / Consultant","start":"2026-04-25","end":"2026-05-26","duration":32,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.4","task":"จัดทำ RACI Matrix สำหรับกระบวนการหลักด้าน Data Governance","deliverable":"","owner":"TG / Consultant","start":"2026-05-16","end":"2026-06-16","duration":32,"status":"Done","progress":100,"remark":""},{"wbs":"3.5.5","task":"Enterprise Data Policy","deliverable":"4.2 Enterprise Data Policy","owner":"TG / Consultant","start":"2026-06-06","end":"2026-06-30","duration":25,"status":"Done","progress":100,"remark":""},{"wbs":"3.6","task":"การกำหนด Data Domain และโครงสร้างผู้รับผิดชอบข้อมูล อย่างน้อย 3 Data Domain","deliverable":"4.3 Data Standards & Guidelines","owner":"TG / Consultant","start":"2026-06-15","end":"2026-07-31","duration":47,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.1","task":"ระบุและนิยาม Data Domain/Sub-domain ขององค์กร","deliverable":"4.4 Data Domain อย่างน้อย 3 Data Domain","owner":"TG / Consultant","start":"2026-06-15","end":"2026-07-03","duration":19,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.2","task":"จัดทำโครงสร้าง Data Owner,Data Steward,Data Custodian","deliverable":"Data domain Owner/Steward/Custodian ของแต่ละ Domain, Sub Domain","owner":"TG / Consultant","start":"2026-06-23","end":"2026-07-15","duration":23,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.3","task":"ประสานงาน และทำ Workshop กับหน่วยงานต่างๆ","deliverable":"","owner":"TG / Consultant","start":"2026-07-05","end":"2026-07-27","duration":23,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.6.4","task":"Mapping Applications กับ Data Domain","deliverable":"Mapping applications to Data Domains","owner":"TG / Consultant","start":"2026-07-17","end":"2026-07-31","duration":15,"status":"In Progress","progress":45,"remark":""},{"wbs":"3.7","task":"Metada Business Glossary และ Data Catalog","deliverable":"4.5 Data Catalog","owner":"TG / Consultant","start":"2026-07-15","end":"2026-08-31","duration":48,"status":"Planned","progress":0,"remark":""},{"wbs":"3.7.1","task":"จัดทำ Metadata Standard รวมถึง Business/Technical/Operational Metadata","deliverable":"Busuness Metadata, Technical Metadata and Linkage","owner":"TG / Consultant","start":"2026-07-15","end":"2026-08-07","duration":24,"status":"Planned","progress":0,"remark":""},{"wbs":"3.7.2","task":"จัดทำ Business Glossary พร้อมคำจำกัดความ กฎธุรกิจ และมาตรฐานการตั้งชื่อ","deliverable":"Business Glossary","owner":"TG / Consultant","start":"2026-07-28","end":"2026-08-23","duration":27,"status":"Planned","progress":0,"remark":""},{"wbs":"3.7.3","task":"แนะนำแนวทางการใช้งานหรือปรับใช้ Data Catalog","deliverable":"","owner":"TG / Consultant","start":"2026-08-13","end":"2026-08-31","duration":19,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8","task":"Data Lineage และ Data Flow","deliverable":"4.7 Data Flow/Data Lineage","owner":"TG / Consultant","start":"2026-08-15","end":"2026-09-30","duration":47,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8.1","task":"จัดทำ Data Lineage Framework","deliverable":"End-to-End Data Flow","owner":"TG / Consultant","start":"2026-08-15","end":"2026-09-06","duration":23,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8.2","task":"ประสานงานและทำ Workshop กับหน่วยงานต่างๆ เพื่อระบุ Data flow และ Lineage ของข้อมูล","deliverable":"","owner":"TG / Consultant","start":"2026-08-27","end":"2026-09-22","duration":27,"status":"Planned","progress":0,"remark":""},{"wbs":"3.8.3","task":"System-to-System Mapping","deliverable":"","owner":"TG / Consultant","start":"2026-09-12","end":"2026-09-30","duration":19,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9","task":"การบริหารคุณภาพข้อมูล (Data Quality Management)","deliverable":"4.6 Data quality","owner":"TG / Consultant","start":"2026-09-01","end":"2026-10-31","duration":61,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.1","task":"จัดทำ Data Quality Framework","deliverable":"","owner":"TG / Consultant","start":"2026-09-01","end":"2026-09-23","duration":23,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.2","task":"ระบุ Critical Data Elements (CDEs) และกฎตรวจสอบคุณภาพข้อมูล Data Quality Rules & Scorecard","deliverable":"Data Quality Scorecard/KPI","owner":"TG / Consultant","start":"2026-09-13","end":"2026-10-08","duration":26,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.3","task":"จัดทำกระบวนการ Data Quality Monitoring และ Issue Management","deliverable":"","owner":"TG / Consultant","start":"2026-09-28","end":"2026-10-23","duration":26,"status":"Planned","progress":0,"remark":""},{"wbs":"3.9.4","task":"Data Cleansing","deliverable":"","owner":"TG / Consultant","start":"2026-10-13","end":"2026-10-31","duration":19,"status":"Planned","progress":0,"remark":""},{"wbs":"3.1","task":"Data Security, Privacy & Compliance Alignment","deliverable":"","owner":"TG / Consultant","start":"2026-10-01","end":"2026-11-15","duration":46,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.1","task":"จัดทำมาตรฐาน Data Classification","deliverable":"","owner":"TG / Consultant","start":"2026-10-01","end":"2026-10-17","duration":17,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.2","task":"จัดทำมาตรฐาน Data Security","deliverable":"","owner":"TG / Consultant","start":"2026-10-07","end":"2026-10-26","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.3","task":"ให้คำแนะนำการควบคุมสิทธิ์และการเข้าถึงข้อมูล","deliverable":"","owner":"TG / Consultant","start":"2026-10-16","end":"2026-11-04","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.4","task":"จัดให้สอดคล้องกับกฎหมาย ข้อบังคับ และนโยบายภายใน","deliverable":"","owner":"TG / Consultant","start":"2026-10-25","end":"2026-11-13","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.10.5","task":"Data Retention & Disposal Policy","deliverable":"","owner":"TG / Consultant","start":"2026-11-03","end":"2026-11-15","duration":13,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11","task":"Change management และการอบรมบุคลากร","deliverable":"4.9 Change mqnqgement/Training Materials/Knowledge Trasfer","owner":"TG / Consultant","start":"2026-11-01","end":"2026-12-15","duration":45,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11.1","task":"ส่งเสริมวัฒนธรรมองค์กรด้านการกำกับดูแลข้อมูล","deliverable":"","owner":"TG / Consultant","start":"2026-11-01","end":"2026-11-23","duration":23,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11.2","task":"จัดอบรม Data/owner/Steward/User","deliverable":"","owner":"TG / Consultant","start":"2026-11-13","end":"2026-12-08","duration":26,"status":"Planned","progress":0,"remark":""},{"wbs":"3.11.3","task":"จัดทำเอกสารสื่อสารและคู่มือใช้งาน","deliverable":"","owner":"TG / Consultant","start":"2026-11-28","end":"2026-12-15","duration":18,"status":"Planned","progress":0,"remark":""},{"wbs":"3.12","task":"การสนับสนุนการนำไปใช้งานจริง","deliverable":"","owner":"TG / Consultant","start":"2026-12-01","end":"2026-12-24","duration":24,"status":"Planned","progress":0,"remark":""},{"wbs":"3.12.1","task":"ให้คำปรึกษาอย่างต่อเนื่องในแต่ละขั้นตอนของการใช้ Framework","deliverable":"","owner":"TG / Consultant","start":"2026-12-01","end":"2026-12-20","duration":20,"status":"Planned","progress":0,"remark":""},{"wbs":"3.12.2","task":"ร่วมตรวจสอบการใช้งานในระบบจริงหรือการ Pilot","deliverable":"","owner":"TG / Consultant","start":"2026-12-10","end":"2026-12-24","duration":15,"status":"Planned","progress":0,"remark":""},{"wbs":"3.13","task":"การรายงานและการสื่อสารระดับผุ้บริหาร","deliverable":"4.10 Executive Report","owner":"TG / Consultant","start":"2026-12-15","end":"2026-12-31","duration":17,"status":"Planned","progress":0,"remark":""},{"wbs":"3.13.1","task":"จัดทำรายงานความคืบหน้า เอกสารสรุป และการนำเสนอ","deliverable":"","owner":"TG / Consultant","start":"2026-12-15","end":"2026-12-31","duration":17,"status":"Planned","progress":0,"remark":""}];
 const DEFAULT_RESOURCES=[{"name":"อ.สุภาภรณ์","position":"ผู้จัดการโครงการ","planned":40,"core":true},{"name":"อ.ธีรยา","position":"Data Governance Lead/Architect","planned":80,"core":true},{"name":"อ.ภัทรพล","position":"Data Governance Specialist/Analyst","planned":160,"core":true},{"name":"อ.ศันศนีย์","position":"Metadata & Data Quality Specialist","planned":120,"core":true},{"name":"อ.กิตติวงศ์","position":"Technical Advisor","planned":10,"core":false}];
@@ -533,40 +535,92 @@ function parseCSV(text){
   return rows.filter(r=>r.some(x=>String(x).trim()!==""));
 }
 function norm(s){return String(s||"").toLowerCase().replace(/[\s_\-/%().]+/g,"")}
+function findHeaderIndex(rows){
+  return rows.findIndex(r=>{
+    const h=(r||[]).map(norm);
+    return h.includes("wbs") || ((h.includes("date")||h.includes("วันที่"))&&(h.includes("person")||h.includes("รายชื่อ")||h.includes("ผู้ปฏิบัติงาน")));
+  });
+}
+function cleanRowsFromHeader(rows){
+  const idx=findHeaderIndex(rows);
+  return idx>=0?rows.slice(idx):rows;
+}
 function detectCSV(rows){
+  rows=cleanRowsFromHeader(rows);
   if(!rows.length)return null;const h=rows[0].map(norm);
   if(h.includes("wbs")&&(h.includes("taskactivity")||h.includes("task")))return"gantt";
   if((h.includes("date")||h.includes("วันที่"))&&(h.includes("person")||h.includes("รายชื่อ")||h.includes("ผู้ปฏิบัติงาน"))&&(h.includes("manday")||h.includes("md")))return"md";
   return null;
 }
 function mapRows(rows){
+  rows=cleanRowsFromHeader(rows);
   const headers=rows[0],keys=headers.map(norm);return rows.slice(1).filter(r=>r.some(x=>String(x).trim())).map(r=>{const o={};keys.forEach((k,i)=>o[k]=r[i]??"");return o})
 }
 function getCol(o,...keys){for(const k of keys){if(o[norm(k)]!==undefined)return o[norm(k)]}return""}
 function normalizeDate(v){
+  if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
+  if(typeof v==="number" && isFinite(v)){
+    const d=new Date(Math.round((v-25569)*86400*1000));
+    if(!isNaN(d))return d.toISOString().slice(0,10);
+  }
   const s=String(v||"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(m){let y=Number(m[3]);if(y<100)y+=2000;if(y>2400)y-=543;return `${y}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;}
   const d=new Date(s);return isNaN(d)?s:d.toISOString().slice(0,10)
 }
 function previewCSV(rows,type,fileName){
+  rows=cleanRowsFromHeader(rows);
   document.getElementById("importInfo").innerHTML=`ไฟล์: <b>${esc(fileName)}</b> • ตรวจพบข้อมูล: <b>${type==="gantt"?"Gantt Chart":"Man-Day"}</b> • ${Math.max(0,rows.length-1)} แถว`;
+  document.getElementById("replaceGantt").parentElement.style.display=type==="gantt"?"flex":"none";
   const p=rows.slice(0,6),cols=Math.min(p[0]?.length||0,10);
   document.getElementById("csvPreview").style.display="block";
   document.getElementById("csvPreview").innerHTML=`<table>${p.map((r,ri)=>`<tr>${r.slice(0,cols).map(c=>ri===0?`<th>${esc(c)}</th>`:`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table>`;
 }
+function workbookToRows(workbook){
+  const preferred=workbook.Sheets["Gantt Chart"]||workbook.Sheets["MD 2569"]||workbook.Sheets[workbook.SheetNames[0]];
+  let best=[];
+  for(const name of ["Gantt Chart","MD 2569",...workbook.SheetNames]){
+    const ws=workbook.Sheets[name];if(!ws)continue;
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""});
+    if(detectCSV(rows)){best=rows;break;}
+    if(!best.length)best=rows;
+  }
+  return best;
+}
 function handleFile(file){
   if(!file)return;const reader=new FileReader();
-  reader.onload=()=>{try{const rows=parseCSV(reader.result),type=detectCSV(rows);if(!type){pendingImport=null;confirmImport.disabled=true;return toast("ไม่สามารถตรวจจับประเภท CSV ได้ กรุณาใช้ Template",true)}pendingImport={rows,type,fileName:file.name};previewCSV(rows,type,file.name);confirmImport.disabled=false}catch(e){toast("อ่านไฟล์ CSV ไม่สำเร็จ",true)}};
-  reader.readAsText(file,"utf-8");
+  const isExcel=/\.(xlsx|xls)$/i.test(file.name);
+  reader.onload=()=>{try{
+    let rows;
+    if(isExcel){
+      if(typeof XLSX==="undefined") throw new Error("SheetJS library not loaded");
+      const wb=XLSX.read(reader.result,{type:"array",cellDates:true});
+      rows=workbookToRows(wb);
+    }else{
+      rows=parseCSV(reader.result);
+    }
+    const type=detectCSV(rows);
+    if(!type){pendingImport=null;confirmImport.disabled=true;return toast("ไม่สามารถตรวจจับประเภทไฟล์ได้ กรุณาใช้ชีท Gantt Chart หรือ Template",true)}
+    pendingImport={rows,type,fileName:file.name};previewCSV(rows,type,file.name);confirmImport.disabled=false
+  }catch(e){toast("อ่านไฟล์ไม่สำเร็จ: "+(e.message||"กรุณาตรวจสอบรูปแบบไฟล์"),true)}};
+  if(isExcel)reader.readAsArrayBuffer(file);else reader.readAsText(file,"utf-8");
 }
 function importCSV(){
   if(!pendingImport)return;const records=mapRows(pendingImport.rows);let updated=0,added=0,warnings=0;
   if(pendingImport.type==="gantt"){
+    const imported=[];
     records.forEach(o=>{
       const wbs=String(getCol(o,"WBS")).trim();if(!wbs)return;
-      const obj={wbs,task:getCol(o,"Task / Activity","Task"),deliverable:getCol(o,"Deliverable"),owner:getCol(o,"Owner"),start:normalizeDate(getCol(o,"Start")),end:normalizeDate(getCol(o,"End")),duration:Number(getCol(o,"Duration")||0),status:getCol(o,"Status")||"Planned",progress:Number(getCol(o,"% Complete","Progress")||0),remark:getCol(o,"Remark")};
-      if(obj.progress<=1&&String(getCol(o,"% Complete","Progress")).includes("."))obj.progress*=100;
-      const i=state.tasks.findIndex(t=>String(t.wbs)===wbs);if(i>=0){state.tasks[i]={...state.tasks[i],...obj};updated++}else{state.tasks.push(obj);added++}
+      const progressRaw=getCol(o,"% Complete","Progress");
+      const obj={wbs,task:getCol(o,"Task / Activity","Task"),deliverable:getCol(o,"Deliverable"),owner:getCol(o,"Owner"),start:normalizeDate(getCol(o,"Start")),end:normalizeDate(getCol(o,"End")),duration:Number(getCol(o,"Duration")||0),status:getCol(o,"Status")||"Planned",progress:Number(progressRaw||0),remark:getCol(o,"Remark")};
+      if(obj.progress<=1)obj.progress*=100;
+      imported.push(obj);
     });
+    if(document.getElementById("replaceGantt")?.checked){
+      state.tasks=imported;added=imported.length;updated=0;
+    }else{
+      imported.forEach(obj=>{const i=state.tasks.findIndex(t=>String(t.wbs)===String(obj.wbs));if(i>=0){state.tasks[i]={...state.tasks[i],...obj};updated++}else{state.tasks.push(obj);added++}});
+    }
   }else{
     records.forEach(o=>{
       const date=normalizeDate(getCol(o,"Date","วันที่")),person=String(getCol(o,"Person","รายชื่อ","ผู้ปฏิบัติงาน")).trim(),task=String(getCol(o,"Task / Activity","Task","กิจกรรม")).trim(),manday=Number(getCol(o,"Man-Day","MD","Manday")),note=getCol(o,"Note","Remark","หมายเหตุ"),rawId=getCol(o,"ID");
@@ -579,7 +633,7 @@ function importCSV(){
   }
   persist();closeImportModal();renderGantt();renderMD();toast(`อัปเดตสำเร็จ: เพิ่ม ${added} • แก้ไข ${updated}${warnings?` • ข้าม ${warnings}`:""}`);
 }
-function openImportModal(){pendingImport=null;csvFile.value="";csvPreview.style.display="none";importInfo.textContent="";confirmImport.disabled=true;importModal.classList.add("show")}
+function openImportModal(){pendingImport=null;csvFile.value="";csvPreview.style.display="none";importInfo.textContent="";confirmImport.disabled=true;if(document.getElementById("replaceGantt")){replaceGantt.checked=false;replaceGantt.parentElement.style.display="none"}importModal.classList.add("show")}
 function closeImportModal(){importModal.classList.remove("show");pendingImport=null}
 function downloadGanttTemplate(){download("Gantt_Update_Template.csv","WBS,Task / Activity,Deliverable,Owner,Start,End,Duration,Status,% Complete,Remark\n3.6.1,ตัวอย่างกิจกรรม,ตัวอย่าง Deliverable,TG / Consultant,2026-06-15,2026-06-30,16,In Progress,50,")}
 function downloadMdTemplate(){download("MD_2569_Update_Template.csv","ID,Date,Person,Task / Activity,Man-Day,Note\n,2026-06-18,อ.สุภาภรณ์,ประชุมติดตามโครงการ,0.5,")}

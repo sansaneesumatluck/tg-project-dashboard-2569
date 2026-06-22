@@ -1,23 +1,24 @@
-TG Data Governance Project Control — Web App
+TG Project Dashboard 2569 - Web App
 
-ไฟล์หลัก:
-- index.html เปิดใช้งานด้วย Web Browser ได้ทันที
+เวอร์ชันนี้ใช้สไตล์เดิม และเพิ่มความสามารถในการอัปโหลดไฟล์ Excel/CSV เพื่ออัปเดต Gantt Chart
+
+ไฟล์หลัก
+- index.html
 - templates/Gantt_Update_Template.csv
 - templates/MD_2569_Update_Template.csv
 
-ข้อมูลที่แสดง:
-1) Gantt Chart — ข้อมูลจากชีท Gantt Chart
-2) MD 2569 — แผนและการใช้ Man-Day พร้อมหน้าบันทึกรายการ
+การอัปเดต Gantt Chart
+1. เปิด Web App
+2. กดปุ่ม “นำเข้าไฟล์”
+3. เลือกไฟล์ .xlsx ที่มีชีทชื่อ “Gantt Chart” หรือไฟล์ .csv
+4. ตรวจสอบ Preview
+5. ถ้าต้องการแทนข้อมูลเดิมทั้งหมด ให้ติ๊ก “แทนที่ข้อมูล Gantt Chart เดิมทั้งหมด”
+6. กด “อัปเดตข้อมูล”
 
-การบันทึก:
-ข้อมูลที่เพิ่มหรือแก้ไขจะเก็บใน Local Storage ของ Browser เครื่องนั้น
-ควร Export CSV เป็นระยะเพื่อสำรองและใช้ย้ายข้อมูลระหว่างเครื่อง
+คอลัมน์ที่รองรับสำหรับ Gantt Chart
+WBS, Task / Activity, Deliverable, Owner, Start, End, Duration, Status, % Complete, Remark
 
-การนำเข้า CSV:
-- Gantt: อัปเดต/เพิ่มรายการโดยใช้ WBS เป็นรหัสหลัก
-- Man-Day: อัปเดต/เพิ่มรายการโดยใช้ ID หรือ Date + Person + Task
-ไฟล์ควรบันทึกเป็น UTF-8 CSV
-
-ลิงก์เอกสาร:
-- TG มหิดล: https://drive.google.com/drive/folders/0AM0MHyArwN95Uk9PVA
-- TG ฝั่ง TG: https://thaiairways365.sharepoint.com/sites/THAIProjectCenter/TGDG/Forms/AllItems.aspx
+หมายเหตุ
+- ข้อมูลที่อัปเดตจะบันทึกใน Browser ของผู้ใช้เครื่องนั้น
+- หากต้องการอัปเดตไฟล์เว็บไซต์บน GitHub ถาวร ให้ Export CSV แล้วนำไปปรับในไฟล์ต้นทางหรืออัปเดต data/default ในโค้ดภายหลัง
+- GitHub Pages เป็น static hosting จึงไม่สามารถบันทึกข้อมูลกลับไปที่ repository อัตโนมัติได้
