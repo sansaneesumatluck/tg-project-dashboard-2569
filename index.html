@@ -300,7 +300,7 @@ textarea.form-control{min-height:70px;resize:vertical}
 
 <div class="modal-backdrop" id="importModal">
   <div class="modal">
-    <div class="modal-head"><h4>นำเข้าข้อมูล CSV</h4><button class="icon-btn" id="closeImport">✕</button></div>
+    <div class="modal-head"><h4>นำเข้าข้อมูล Excel / CSV</h4><button class="icon-btn" id="closeImport">✕</button></div>
     <div class="modal-body">
       <div class="import-zone" id="dropZone">
         <input id="csvFile" type="file" accept=".csv,text/csv,.xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel">
@@ -309,6 +309,7 @@ textarea.form-control{min-height:70px;resize:vertical}
       </div>
       <div id="importInfo" style="margin-top:14px;color:var(--muted);font-size:12px"></div>
       <label style="display:flex;gap:8px;align-items:center;margin-top:12px;font-size:12px;color:var(--muted)"><input type="checkbox" id="replaceGantt"> แทนที่ข้อมูล Gantt Chart เดิมทั้งหมดเมื่อไฟล์ที่นำเข้าเป็น Gantt</label>
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)"><input type="checkbox" id="replaceMD"> แทนที่ข้อมูล MD 2569 เดิมทั้งหมดเมื่อไฟล์ที่นำเข้าเป็น MD Entry</label>
       <div class="preview" id="csvPreview" style="display:none"></div>
     </div>
     <div class="modal-foot"><button class="btn" id="cancelImport">ยกเลิก</button><button class="btn primary" id="confirmImport" disabled>อัปเดตข้อมูล</button></div>
@@ -535,105 +536,100 @@ function parseCSV(text){
   return rows.filter(r=>r.some(x=>String(x).trim()!==""));
 }
 function norm(s){return String(s||"").toLowerCase().replace(/[\s_\-/%().]+/g,"")}
-function findHeaderIndex(rows){
-  return rows.findIndex(r=>{
-    const h=(r||[]).map(norm);
-    return h.includes("wbs") || ((h.includes("date")||h.includes("วันที่"))&&(h.includes("person")||h.includes("รายชื่อ")||h.includes("ผู้ปฏิบัติงาน")));
-  });
-}
-function cleanRowsFromHeader(rows){
-  const idx=findHeaderIndex(rows);
-  return idx>=0?rows.slice(idx):rows;
-}
 function detectCSV(rows){
-  rows=cleanRowsFromHeader(rows);
   if(!rows.length)return null;const h=rows[0].map(norm);
   if(h.includes("wbs")&&(h.includes("taskactivity")||h.includes("task")))return"gantt";
   if((h.includes("date")||h.includes("วันที่"))&&(h.includes("person")||h.includes("รายชื่อ")||h.includes("ผู้ปฏิบัติงาน"))&&(h.includes("manday")||h.includes("md")))return"md";
   return null;
 }
 function mapRows(rows){
-  rows=cleanRowsFromHeader(rows);
   const headers=rows[0],keys=headers.map(norm);return rows.slice(1).filter(r=>r.some(x=>String(x).trim())).map(r=>{const o={};keys.forEach((k,i)=>o[k]=r[i]??"");return o})
 }
 function getCol(o,...keys){for(const k of keys){if(o[norm(k)]!==undefined)return o[norm(k)]}return""}
 function normalizeDate(v){
-  if(v instanceof Date && !isNaN(v)) return v.toISOString().slice(0,10);
-  if(typeof v==="number" && isFinite(v)){
-    const d=new Date(Math.round((v-25569)*86400*1000));
-    if(!isNaN(d))return d.toISOString().slice(0,10);
-  }
-  const s=String(v||"").trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
-  const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
-  if(m){let y=Number(m[3]);if(y<100)y+=2000;if(y>2400)y-=543;return `${y}-${String(m[2]).padStart(2,"0")}-${String(m[1]).padStart(2,"0")}`;}
+  if(v instanceof Date&&!isNaN(v))return v.toISOString().slice(0,10);
+  if(typeof v==="number"&&isFinite(v)){const d=XLSX.SSF.parse_date_code(v);if(d)return `${d.y}-${String(d.m).padStart(2,"0")}-${String(d.d).padStart(2,"0")}`}
+  const s=String(v||"").trim();if(!s)return"";
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  let m=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
+  if(m){let y=Number(m[3]);if(y<100)y+=2000;if(y>2400)y-=543;return `${y}-${String(Number(m[2])).padStart(2,"0")}-${String(Number(m[1])).padStart(2,"0")}`}
+  m=s.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/);
+  if(m){const months={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};let y=Number(m[3]);if(y<100)y+=2000;const mo=months[m[2].toLowerCase()];if(mo)return `${y}-${String(mo).padStart(2,"0")}-${String(Number(m[1])).padStart(2,"0")}`}
   const d=new Date(s);return isNaN(d)?s:d.toISOString().slice(0,10)
 }
 function previewCSV(rows,type,fileName){
-  rows=cleanRowsFromHeader(rows);
   document.getElementById("importInfo").innerHTML=`ไฟล์: <b>${esc(fileName)}</b> • ตรวจพบข้อมูล: <b>${type==="gantt"?"Gantt Chart":"Man-Day"}</b> • ${Math.max(0,rows.length-1)} แถว`;
-  document.getElementById("replaceGantt").parentElement.style.display=type==="gantt"?"flex":"none";
   const p=rows.slice(0,6),cols=Math.min(p[0]?.length||0,10);
   document.getElementById("csvPreview").style.display="block";
   document.getElementById("csvPreview").innerHTML=`<table>${p.map((r,ri)=>`<tr>${r.slice(0,cols).map(c=>ri===0?`<th>${esc(c)}</th>`:`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table>`;
 }
-function workbookToRows(workbook){
-  const preferred=workbook.Sheets["Gantt Chart"]||workbook.Sheets["MD 2569"]||workbook.Sheets[workbook.SheetNames[0]];
-  let best=[];
-  for(const name of ["Gantt Chart","MD 2569",...workbook.SheetNames]){
-    const ws=workbook.Sheets[name];if(!ws)continue;
-    const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:""});
-    if(detectCSV(rows)){best=rows;break;}
-    if(!best.length)best=rows;
-  }
-  return best;
+function sheetRows(ws){return XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:false,blankrows:false})}
+function findHeaderRow(rows,required){return rows.findIndex(r=>{const n=r.map(norm);return required.every(k=>n.includes(norm(k)))})}
+function rowsFromGanttSheet(rows){
+  const idx=findHeaderRow(rows,["WBS"]);if(idx<0)return null;
+  const h=rows[idx].map(x=>String(x||"").trim()),body=rows.slice(idx+1).filter(r=>r.some(x=>String(x).trim()!==""));
+  return [h,...body];
+}
+function rowsFromMdEntrySheet(rows){
+  const idx=rows.findIndex(r=>r.map(norm).includes("date")&&r.some(c=>norm(c).includes("dailytotalmd")));
+  if(idx<0)return null;
+  const h=rows[idx].map(x=>String(x||"").trim());
+  const dateIdx=h.findIndex(x=>norm(x)==="date"||norm(x)==="วันที่");
+  const taskIdx=h.findIndex(x=>["taskactivity","task","กิจกรรม"].includes(norm(x)));
+  const totalIdx=h.findIndex(x=>norm(x).includes("dailytotalmd")||norm(x)==="total");
+  const personCols=[];
+  h.forEach((name,i)=>{if(i>taskIdx&&i<totalIdx&&String(name).trim())personCols.push({name:String(name).trim(),i})});
+  const out=[["ID","Date","Person","Task / Activity","Man-Day","Note"]];
+  rows.slice(idx+1).forEach((r,rowNo)=>{
+    const date=normalizeDate(r[dateIdx]);if(!date)return;
+    const task=String(r[taskIdx]||"งานโครงการ").trim()||"งานโครงการ";
+    personCols.forEach(p=>{const md=Number(String(r[p.i]??"").replace(/,/g,""));if(md>0)out.push([`xlsx-${date}-${p.name}-${rowNo}`,date,p.name,task,md,""])});
+  });
+  return out;
+}
+function rowsFromWorkbook(workbook){
+  const names=workbook.SheetNames;
+  let mdName=names.find(n=>norm(n).includes("mdentry")||norm(n).includes("md2569")||norm(n).includes("manday"));
+  let ganttName=names.find(n=>norm(n).includes("ganttchart")||norm(n).includes("gantt"));
+  if(mdName){const rows=rowsFromMdEntrySheet(sheetRows(workbook.Sheets[mdName]));if(rows)return{rows,type:"md",sheet:mdName}}
+  if(ganttName){const rows=rowsFromGanttSheet(sheetRows(workbook.Sheets[ganttName]));if(rows)return{rows,type:"gantt",sheet:ganttName}}
+  for(const name of names){const rows=sheetRows(workbook.Sheets[name]);const md=rowsFromMdEntrySheet(rows);if(md)return{rows:md,type:"md",sheet:name};const g=rowsFromGanttSheet(rows);if(g)return{rows:g,type:"gantt",sheet:name}}
+  return null;
 }
 function handleFile(file){
-  if(!file)return;const reader=new FileReader();
-  const isExcel=/\.(xlsx|xls)$/i.test(file.name);
+  if(!file)return;const isExcel=/\.(xlsx|xls)$/i.test(file.name);const reader=new FileReader();
   reader.onload=()=>{try{
-    let rows;
-    if(isExcel){
-      if(typeof XLSX==="undefined") throw new Error("SheetJS library not loaded");
-      const wb=XLSX.read(reader.result,{type:"array",cellDates:true});
-      rows=workbookToRows(wb);
-    }else{
-      rows=parseCSV(reader.result);
-    }
-    const type=detectCSV(rows);
-    if(!type){pendingImport=null;confirmImport.disabled=true;return toast("ไม่สามารถตรวจจับประเภทไฟล์ได้ กรุณาใช้ชีท Gantt Chart หรือ Template",true)}
-    pendingImport={rows,type,fileName:file.name};previewCSV(rows,type,file.name);confirmImport.disabled=false
-  }catch(e){toast("อ่านไฟล์ไม่สำเร็จ: "+(e.message||"กรุณาตรวจสอบรูปแบบไฟล์"),true)}};
+    let rows,type,sourceSheet="";
+    if(isExcel){const wb=XLSX.read(reader.result,{type:"array",cellDates:true});const parsed=rowsFromWorkbook(wb);if(!parsed){pendingImport=null;confirmImport.disabled=true;return toast("ไม่พบชีท Gantt Chart หรือ MD Entry ใน Excel นี้",true)}rows=parsed.rows;type=parsed.type;sourceSheet=parsed.sheet;}
+    else{rows=parseCSV(reader.result);type=detectCSV(rows);if(!type){pendingImport=null;confirmImport.disabled=true;return toast("ไม่สามารถตรวจจับประเภท CSV ได้ กรุณาใช้ Template",true)}}
+    pendingImport={rows,type,fileName:file.name,sourceSheet};previewCSV(rows,type,file.name+(sourceSheet?` / Sheet: ${sourceSheet}`:""));confirmImport.disabled=false
+  }catch(e){console.error(e);toast("อ่านไฟล์ไม่สำเร็จ กรุณาตรวจสอบ Template",true)}};
   if(isExcel)reader.readAsArrayBuffer(file);else reader.readAsText(file,"utf-8");
 }
 function importCSV(){
   if(!pendingImport)return;const records=mapRows(pendingImport.rows);let updated=0,added=0,warnings=0;
   if(pendingImport.type==="gantt"){
-    const imported=[];
+    if(document.getElementById("replaceGantt")?.checked){state.tasks=[]}
     records.forEach(o=>{
       const wbs=String(getCol(o,"WBS")).trim();if(!wbs)return;
-      const progressRaw=getCol(o,"% Complete","Progress");
-      const obj={wbs,task:getCol(o,"Task / Activity","Task"),deliverable:getCol(o,"Deliverable"),owner:getCol(o,"Owner"),start:normalizeDate(getCol(o,"Start")),end:normalizeDate(getCol(o,"End")),duration:Number(getCol(o,"Duration")||0),status:getCol(o,"Status")||"Planned",progress:Number(progressRaw||0),remark:getCol(o,"Remark")};
-      if(obj.progress<=1)obj.progress*=100;
-      imported.push(obj);
+      const obj={wbs,task:getCol(o,"Task / Activity","Task"),deliverable:getCol(o,"Deliverable"),owner:getCol(o,"Owner"),start:normalizeDate(getCol(o,"Start")),end:normalizeDate(getCol(o,"End")),duration:Number(getCol(o,"Duration")||0),status:getCol(o,"Status")||"Planned",progress:Number(getCol(o,"% Complete","Progress")||0),remark:getCol(o,"Remark")};
+      if(obj.progress<=1&&String(getCol(o,"% Complete","Progress")).includes("."))obj.progress*=100;
+      const i=state.tasks.findIndex(t=>String(t.wbs)===wbs);if(i>=0){state.tasks[i]={...state.tasks[i],...obj};updated++}else{state.tasks.push(obj);added++}
     });
-    if(document.getElementById("replaceGantt")?.checked){
-      state.tasks=imported;added=imported.length;updated=0;
-    }else{
-      imported.forEach(obj=>{const i=state.tasks.findIndex(t=>String(t.wbs)===String(obj.wbs));if(i>=0){state.tasks[i]={...state.tasks[i],...obj};updated++}else{state.tasks.push(obj);added++}});
-    }
   }else{
+    if(document.getElementById("replaceMD")?.checked){state.entries=[]}
     records.forEach(o=>{
-      const date=normalizeDate(getCol(o,"Date","วันที่")),person=String(getCol(o,"Person","รายชื่อ","ผู้ปฏิบัติงาน")).trim(),task=String(getCol(o,"Task / Activity","Task","กิจกรรม")).trim(),manday=Number(getCol(o,"Man-Day","MD","Manday")),note=getCol(o,"Note","Remark","หมายเหตุ"),rawId=getCol(o,"ID");
+      const date=normalizeDate(getCol(o,"Date","วันที่")),person=String(getCol(o,"Person","รายชื่อ","ผู้ปฏิบัติงาน")).trim(),task=String(getCol(o,"Task / Activity","Task","กิจกรรม")||"งานโครงการ").trim(),manday=Number(getCol(o,"Man-Day","MD","Manday")),note=getCol(o,"Note","Remark","หมายเหตุ"),rawId=getCol(o,"ID");
       if(!date||!person||!task||!manday)return;
       const id=rawId||`csv-${date}-${person}-${task}`;const obj={id,date,person,task,manday,note};
-      if(!state.resources.some(r=>r.name===person)){warnings++;return}
+      if(!state.resources.some(r=>r.name===person)){state.resources.push({name:person,position:"",planned:0,core:false})}
       const i=state.entries.findIndex(e=>String(e.id)===String(id)||(e.date===date&&e.person===person&&e.task===task));
       if(i>=0){obj.id=state.entries[i].id;state.entries[i]=obj;updated++}else{state.entries.push(obj);added++}
     });
   }
   persist();closeImportModal();renderGantt();renderMD();toast(`อัปเดตสำเร็จ: เพิ่ม ${added} • แก้ไข ${updated}${warnings?` • ข้าม ${warnings}`:""}`);
 }
-function openImportModal(){pendingImport=null;csvFile.value="";csvPreview.style.display="none";importInfo.textContent="";confirmImport.disabled=true;if(document.getElementById("replaceGantt")){replaceGantt.checked=false;replaceGantt.parentElement.style.display="none"}importModal.classList.add("show")}
+function openImportModal(){pendingImport=null;csvFile.value="";csvPreview.style.display="none";importInfo.textContent="";confirmImport.disabled=true;importModal.classList.add("show")}
 function closeImportModal(){importModal.classList.remove("show");pendingImport=null}
 function downloadGanttTemplate(){download("Gantt_Update_Template.csv","WBS,Task / Activity,Deliverable,Owner,Start,End,Duration,Status,% Complete,Remark\n3.6.1,ตัวอย่างกิจกรรม,ตัวอย่าง Deliverable,TG / Consultant,2026-06-15,2026-06-30,16,In Progress,50,")}
 function downloadMdTemplate(){download("MD_2569_Update_Template.csv","ID,Date,Person,Task / Activity,Man-Day,Note\n,2026-06-18,อ.สุภาภรณ์,ประชุมติดตามโครงการ,0.5,")}
